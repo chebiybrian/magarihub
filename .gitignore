@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Secrets — NEVER commit these
+.env
+**/.env
+!**/.env.example
+
+# Local SQLite dev database (we use Postgres in production)
+*.db
+*.db-journal
+backend/prisma/dev.db*
+
+# Locally uploaded files (production uses Cloudinary)
+backend/uploads/
+
+# Build output
+web/dist/
+dist/
+
+# Expo / React Native
+mobile/.expo/
+.expo/
+
+# Logs & OS junk
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Personal / machine-specific
+my-ip.txt

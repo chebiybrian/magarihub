@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "MagariHub",
+    "slug": "magari-hub",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#1a7a3a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "co.ke.magarihub"
+    },
+    "android": {
+      "package": "co.ke.magarihub"
+    }
+  }
+}

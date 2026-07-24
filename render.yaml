@@ -1,0 +1,28 @@
+# Render Blueprint for the MagariHub backend API.
+# When you connect this repo on render.com, Render reads this file and sets up the
+# service automatically. You still add the secret values (database, cloudinary, etc.)
+# in the dashboard — they are marked `sync: false` so they are never stored in git.
+services:
+  - type: web
+    name: magarihub-api
+    runtime: node
+    plan: free                 # free tier: sleeps after 15 min idle, ~50s to wake
+    rootDir: backend           # the API lives in the backend/ folder
+    buildCommand: npm install && npm run build   # installs deps + prisma generate + db push
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      # --- Secrets you paste in the Render dashboard (never committed) ---
+      - key: DATABASE_URL       # Neon Postgres connection string
+        sync: false
+      - key: CLOUDINARY_URL     # from your Cloudinary dashboard
+        sync: false
+      - key: JWT_SECRET         # long random string (signs login tokens)
+        sync: false
+      - key: PUBLIC_WEB_URL     # https://magarihub.vercel.app
+        sync: false
+      # --- Optional: leave unset to keep payments/AI-vetting in demo mode ---
+      # MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, MPESA_SHORTCODE, MPESA_PASSKEY,
+      # MPESA_CALLBACK_URL, FLUTTERWAVE_SECRET_KEY, ANTHROPIC_API_KEY

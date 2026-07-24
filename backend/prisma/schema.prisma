@@ -1,0 +1,271 @@
+// MagariHub database schema.
+// Run `npm run db:setup` to create the database, then `npm run db:seed` for sample data.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // hosted on Neon (free). Local dev uses the same database.
+  url      = env("DATABASE_URL")
+}
+
+// ---------- USERS & VERIFICATION ----------
+// role: BUYER | SELLER | DEALER | DRIVER
+// verification: NONE | PENDING | ID_VERIFIED | DEALER_VERIFIED
+model User {
+  id           Int            @id @default(autoincrement())
+  name         String
+  email        String         @unique
+  phone        String? // e.g. +2547XXXXXXXX (used for M-Pesa later)
+  passwordHash String
+  role         String         @default("BUYER")
+  county       String? // e.g. Nairobi, Mombasa, Kiambu
+  bio          String?
+  avatarUrl    String?
+  verification String         @default("NONE")
+  verificationExpiry DateTime? // when a paid badge lapses (1 year after payment)
+  createdAt    DateTime       @default(now())
+  listings     Listing[]
+  reels        Reel[]
+  driver       DriverProfile?
+  parts        Part[]
+  comments     ReelComment[]
+  reelLikes    ReelLike[]
+  savedReels   SavedReel[]
+  reelViews    ReelView[]
+  following      Follow[]  @relation("follower") // accounts I follow
+  followers      Follow[]  @relation("following") // accounts following me
+  payments       Payment[] @relation("payer")     // payments I made
+  tipsReceived   Payment[] @relation("recipient")  // gifts/tips sent to me
+  commentLikes   CommentLike[]
+  driverReviews  DriverReview[]
+}
+
+// ---------- PAYMENTS (verification, tips/gifts, donations) ----------
+// status: PENDING | COMPLETED | FAILED
+// method: MPESA | CARD
+// purpose: VERIFICATION_INDIVIDUAL | VERIFICATION_BUSINESS | TIP_CREATOR | DONATION_PLATFORM
+model Payment {
+  id           Int       @id @default(autoincrement())
+  user         User      @relation("payer", fields: [userId], references: [id])
+  userId       Int // who paid
+  recipient    User?     @relation("recipient", fields: [recipientId], references: [id])
+  recipientId  Int? // creator being tipped (null = platform donation / verification)
+  amountKes    Int
+  method       String
+  purpose      String
+  message      String? // optional note with a gift
+  status       String    @default("PENDING")
+  phone        String? // M-Pesa number used
+  providerRef  String? // CheckoutRequestID (M-Pesa) or tx_ref (card)
+  mpesaReceipt String? // e.g. "SGR7XYZ12" once confirmed
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
+}
+
+// ---------- CAR LISTINGS ----------
+model Listing {
+  id           Int      @id @default(autoincrement())
+  title        String // "2015 Toyota Vitz 1.3L - Fresh Import"
+  make         String // Toyota, Mazda, Subaru...
+  model        String
+  year         Int
+  priceKes     Int // price in Kenyan Shillings
+  mileageKm    Int
+  condition    String // FOREIGN_USED | LOCALLY_USED | NEW
+  transmission String   @default("Automatic")
+  fuelType     String   @default("Petrol")
+  engineCc     Int?
+  county       String // where the car is located
+  description  String?
+  imagesJson   String   @default("[]") // JSON array of image URLs
+  status       String   @default("AVAILABLE") // AVAILABLE | SOLD
+  createdAt    DateTime @default(now())
+  seller       User     @relation(fields: [sellerId], references: [id])
+  sellerId     Int
+  reels        Reel[]
+}
+
+// ---------- REELS (short car videos, TikTok-style) ----------
+model Reel {
+  id        Int      @id @default(autoincrement())
+  videoUrl  String
+  caption   String?
+  likes     Int      @default(0)
+  views     Int      @default(0)
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  Int
+  listing   Listing? @relation(fields: [listingId], references: [id]) // optional: link reel to a car for sale
+  listingId Int?
+  comments  ReelComment[]
+  likedBy   ReelLike[]
+  savedBy   SavedReel[]
+  viewEvents ReelView[]
+}
+
+// ---------- REEL SOCIAL: comments (threaded), per-user likes, saved videos ----------
+model ReelComment {
+  id        Int      @id @default(autoincrement())
+  text      String   @default("")
+  imageUrl  String? // attached photo or GIF
+  likes     Int      @default(0)
+  createdAt DateTime @default(now())
+  reel      Reel     @relation(fields: [reelId], references: [id])
+  reelId    Int
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  Int
+  parent    ReelComment?  @relation("replies", fields: [parentId], references: [id])
+  parentId  Int? // null = top-level comment; set = a reply to another comment
+  replies   ReelComment[] @relation("replies")
+  likedBy   CommentLike[]
+}
+
+// One like per user per comment
+model CommentLike {
+  id        Int         @id @default(autoincrement())
+  createdAt DateTime    @default(now())
+  comment   ReelComment @relation(fields: [commentId], references: [id])
+  commentId Int
+  user      User        @relation(fields: [userId], references: [id])
+  userId    Int
+
+  @@unique([commentId, userId])
+}
+
+// One like per user per reel (double-tap can't spam the counter)
+model ReelLike {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  reel      Reel     @relation(fields: [reelId], references: [id])
+  reelId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+
+  @@unique([reelId, userId])
+}
+
+model SavedReel {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  reel      Reel     @relation(fields: [reelId], references: [id])
+  reelId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+
+  @@unique([reelId, userId])
+}
+
+// Follows: who follows whom
+model Follow {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  follower    User     @relation("follower", fields: [followerId], references: [id])
+  followerId  Int // the person doing the following
+  following   User     @relation("following", fields: [followingId], references: [id])
+  followingId Int // the account being followed
+
+  @@unique([followerId, followingId])
+}
+
+// Watch history — powers the "For You" recommendations
+model ReelView {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  reel      Reel     @relation(fields: [reelId], references: [id])
+  reelId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+// ---------- DRIVERS FOR HIRE ----------
+model DriverProfile {
+  id              Int      @id @default(autoincrement())
+  user            User     @relation(fields: [userId], references: [id])
+  userId          Int      @unique
+  licenseClasses  String // e.g. "B,C1,D" (Kenyan license classes)
+  hasPsvBadge     Boolean  @default(false) // PSV badge for passenger service vehicles
+  yearsExperience Int
+  dailyRateKes    Int
+  county          String
+  available       Boolean  @default(true)
+  about           String?
+  rating          Float    @default(0)
+  createdAt       DateTime @default(now())
+  // ---- License & AI vetting ----
+  licenseName     String? // official name read from the driving licence (shown in the drivers tab)
+  licenseNumber   String?
+  licenseExpiry   String?
+  licenseFileUrl  String? // uploaded scan (image/PDF)
+  vetStatus       String   @default("PENDING") // PENDING | VERIFIED | REJECTED
+  vetNotes        String?
+  vettedAt        DateTime?
+  reviewCount     Int      @default(0)
+  reviews         DriverReview[]
+}
+
+// ---------- DRIVER REVIEWS (rating + comment from riders) ----------
+model DriverReview {
+  id        Int           @id @default(autoincrement())
+  rating    Int // 1-5 stars
+  comment   String?
+  createdAt DateTime      @default(now())
+  driver    DriverProfile @relation(fields: [driverId], references: [id])
+  driverId  Int
+  author    User          @relation(fields: [authorId], references: [id])
+  authorId  Int
+
+  @@unique([driverId, authorId]) // one review per person per driver (editable)
+}
+
+// ---------- INSURANCE ----------
+model InsurancePolicy {
+  id            Int     @id @default(autoincrement())
+  company       String // Jubilee, Britam, APA, CIC...
+  name          String // "Jubilee Comprehensive Motor"
+  type          String // COMPREHENSIVE | THIRD_PARTY | THIRD_PARTY_FIRE_THEFT
+  annualRatePct Float? // % of car value per year (comprehensive policies)
+  flatAnnualKes Int? // flat annual price (third-party policies)
+  minPremiumKes Int?
+  featuresJson  String  @default("[]") // JSON array of feature strings
+  contactPhone  String?
+  website       String?
+}
+
+// ---------- GUIDES & NEWS ----------
+model Guide {
+  id        Int      @id @default(autoincrement())
+  title     String
+  category  String // BUYING_GUIDE | IMPORT | NTSA | INSURANCE | NEWS | STATISTICS
+  summary   String
+  content   String // full article text (markdown allowed)
+  createdAt DateTime @default(now())
+}
+
+// ---------- ADS (sponsored banners on the listings page) ----------
+model Ad {
+  id        Int      @id @default(autoincrement())
+  title     String
+  text      String?
+  imageUrl  String?
+  linkUrl   String? // where clicking the ad goes ("/insurance" or full https:// link)
+  sponsor   String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+// ---------- CAR PARTS ----------
+model Part {
+  id          Int      @id @default(autoincrement())
+  name        String // "Oil Filter"
+  referenceNo String // manufacturer part number, e.g. 90915-YZZE1
+  compatible  String // "Toyota Vitz, Corolla, Fielder 2005-2018"
+  priceKes    Int
+  condition   String   @default("NEW") // NEW | USED_GENUINE | REFURBISHED
+  county      String
+  imagesJson  String   @default("[]")
+  createdAt   DateTime @default(now())
+  seller      User     @relation(fields: [sellerId], references: [id])
+  sellerId    Int
+}
