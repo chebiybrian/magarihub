@@ -768,4 +768,14 @@ h3 { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.015em; }
 @media (max-width: 640px) {
   .nav { gap: 10px; padding: 10px 12px; }
   .photo-row img { height: 160px; }
+
+  /* On phones, drop the reels controls onto their own centered row BELOW the
+     feed tabs, so they no longer sit under the tabs and become untappable. */
+  .reels-topbar {
+    top: 116px; right: auto; left: 50%; transform: translateX(-50%);
+    justify-content: center; flex-wrap: wrap; max-width: 94vw;
+    gap: 6px; z-index: 9;
+  }
+  .reels-topbar .btn.small { padding: 7px 11px; font-size: 0.8rem; }
+  .reels-search input { width: min(200px, 56vw); }
 }
