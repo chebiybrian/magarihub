@@ -2,7 +2,7 @@
 const router = require('express').Router();
 const prisma = require('../db');
 const auth = require('../middleware/auth');
-const { vetLicense, isConfigured } = require('../licenseVet');
+const { vetLicense, vettingMode } = require('../licenseVet');
 
 // Only VERIFIED drivers appear in the tab. displayName = the name read off the licence.
 function shape(d) {
@@ -122,9 +122,10 @@ router.post('/apply', auth.required, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// GET /api/drivers/vetting-status — is real AI vetting live, or demo mode?
+// GET /api/drivers/vetting-status — which reading engine is live: 'ai' | 'ocr' | 'demo'.
 router.get('/vetting-status', (req, res) => {
-  res.json({ live: isConfigured() });
+  const mode = vettingMode();
+  res.json({ live: mode !== 'demo', mode });
 });
 
 // ---------- REVIEWS & RATINGS ----------

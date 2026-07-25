@@ -12,7 +12,8 @@ const CLASSES = ['B', 'C1', 'C', 'D1', 'D'];
 function DriverApplication({ onClose, onVerified }) {
   const [f, setF] = useState({ typedName: '', dailyRateKes: '', county: 'Nairobi', yearsExperience: '', about: '', hasPsvBadge: false });
   const [file, setFile] = useState(null);
-  const [live, setLive] = useState(false); // real AI vs demo
+  const [live, setLive] = useState(false); // is real reading on? (ai or ocr)
+  const [mode, setMode] = useState('demo'); // 'ai' | 'ocr' | 'demo'
   const [stage, setStage] = useState('form'); // form | vetting | verified | rejected
   const [result, setResult] = useState(null);
   const [seconds, setSeconds] = useState(0);
@@ -22,7 +23,7 @@ function DriverApplication({ onClose, onVerified }) {
   const set = (k) => (e) => setF({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
 
   useEffect(() => {
-    api('/api/drivers/vetting-status').then((s) => setLive(s.live)).catch(() => {});
+    api('/api/drivers/vetting-status').then((s) => { setLive(s.live); setMode(s.mode || (s.live ? 'ai' : 'demo')); }).catch(() => {});
     return () => clearInterval(timerRef.current);
   }, []);
 
@@ -65,7 +66,7 @@ function DriverApplication({ onClose, onVerified }) {
             <h2>Become a Driver 🧑‍✈️</h2>
             <p className="meta">
               To keep riders safe, every driver is verified. Upload your <b>driving licence</b> (photo or PDF) —
-              our AI reads it in seconds, and the name on your licence becomes your official driver name.
+              it's read automatically in seconds, and the name on your licence becomes your official driver name.
             </p>
             <form className="stack" onSubmit={submit}>
               <label className="file-label">
@@ -84,8 +85,9 @@ function DriverApplication({ onClose, onVerified }) {
               <label className="meta"><input type="checkbox" checked={f.hasPsvBadge} onChange={set('hasPsvBadge')} /> I have a PSV badge</label>
               <textarea rows="2" placeholder="About you — experience, routes, languages…" value={f.about} onChange={set('about')} />
               {error && <p className="error">{error}</p>}
-              <button className="btn" type="submit">Submit for AI Verification</button>
-              {!live && <p className="demo-note">⚙️ Demo mode — vetting is simulated. Add ANTHROPIC_API_KEY in .env for real licence reading.</p>}
+              <button className="btn" type="submit">Submit for Verification</button>
+              {mode === 'demo' && <p className="demo-note">⚙️ Demo mode — vetting is simulated. Enable OCR or add an AI key for real licence reading.</p>}
+              {mode === 'ocr' && <p className="demo-note">📷 Tip: upload a clear, flat, well-lit photo of the front of your licence for the best automatic read.</p>}
             </form>
           </>
         )}
