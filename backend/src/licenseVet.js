@@ -146,7 +146,7 @@ function parseLicenceText(raw) {
   const classLine = lines.find((l) => /CLASS/i.test(l));
   if (classLine) {
     const m = classLine.toUpperCase().match(/CLASS[^A-Z0-9]*([A-Z0-9,\/\s]+)/);
-    if (m) classes = m[1].replace(/[^A-Z0-9,\/]/g, '').slice(0, 20);
+    if (m) classes = m[1].trim().replace(/\s+/g, ',').replace(/[^A-Z0-9,\/]/g, '').replace(/,+/g, ',').slice(0, 20);
   }
 
   // Dates: dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy. Latest = expiry.
@@ -270,4 +270,4 @@ async function vetLicense({ fileUrl, typedName }) {
   return result;
 }
 
-module.exports = { vetLicense, isConfigured, vettingMode };
+module.exports = { vetLicense, isConfigured, vettingMode, parseLicenceText };
