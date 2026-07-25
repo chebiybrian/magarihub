@@ -498,44 +498,47 @@ export default function ReelsPage() {
 
   return (
     <div className="reels-feed" ref={feedRef}>
-      <div className="feed-tabs">
-        {[['following', 'Following'], ['foryou', 'For You'], ['latest', 'Latest']].map(([key, label]) => (
-          <button key={key} className={`feed-tab ${feedType === key ? 'on' : ''}`} onClick={() => switchFeed(key)}>
-            {label}
-          </button>
-        ))}
-      </div>
-      <div className="reels-topbar">
-        {searchOpen ? (
-          <form className="reels-search" onSubmit={submitSearch}>
-            <input
-              autoFocus
-              placeholder="Search videos… e.g. Prado, hybrid"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-            <button className="btn small" type="submit">Search</button>
-            <button className="btn small secondary" type="button" onClick={clearSearch} title="Clear search">✕</button>
-          </form>
-        ) : (
-          <button className="btn small" onClick={() => setSearchOpen(true)}>🔍 Search</button>
-        )}
-        <div className="volume-ctl">
-          <button className="btn small" onClick={toggleMute} title={muted ? 'Turn sound on' : 'Mute'}>
-            {muted ? '🔇' : '🔊'}
-          </button>
-          {!muted && (
-            <input
-              type="range" min="0" max="100"
-              value={Math.round(volume * 100)}
-              onChange={(e) => setVolume(Number(e.target.value) / 100)}
-              title={`Volume ${Math.round(volume * 100)}%`}
-            />
-          )}
+      <div className="reels-bar">
+        <div className="feed-tabs">
+          {[['following', 'Following'], ['foryou', 'For You'], ['latest', 'Latest']].map(([key, label]) => (
+            <button key={key} className={`feed-tab ${feedType === key ? 'on' : ''}`} onClick={() => switchFeed(key)}>
+              {label}
+            </button>
+          ))}
         </div>
-        <button className="btn small" onClick={toggleAutoScroll}>
-          ⏭ Auto-scroll: {autoScroll ? 'ON' : 'OFF'}
-        </button>
+        <div className="reels-topbar">
+          {searchOpen ? (
+            <form className="reels-search" onSubmit={submitSearch}>
+              <input
+                autoFocus
+                placeholder="Search…"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+              <button className="btn small" type="submit">Go</button>
+              <button className="btn small secondary" type="button" onClick={clearSearch} title="Clear search">✕</button>
+            </form>
+          ) : (
+            <button className="btn small" onClick={() => setSearchOpen(true)} title="Search">🔍</button>
+          )}
+          <div className="volume-ctl">
+            <button className="btn small" onClick={toggleMute} title={muted ? 'Turn sound on' : 'Mute'}>
+              {muted ? '🔇' : '🔊'}
+            </button>
+            {!muted && (
+              <input
+                type="range" min="0" max="100"
+                value={Math.round(volume * 100)}
+                onChange={(e) => setVolume(Number(e.target.value) / 100)}
+                title={`Volume ${Math.round(volume * 100)}%`}
+              />
+            )}
+          </div>
+          <button className={`btn small autoscroll-btn ${autoScroll ? 'on' : ''}`}
+            onClick={toggleAutoScroll} title={`Auto-scroll ${autoScroll ? 'ON' : 'OFF'}`}>
+            ⏭
+          </button>
+        </div>
       </div>
       {reels.map((r, i) => (
         <ReelItem

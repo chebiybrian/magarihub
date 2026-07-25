@@ -671,9 +671,8 @@ h3 { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.015em; }
 .comment-attach-preview img { height: 54px; border-radius: 8px; }
 .comment-attach-preview .link { font-size: 0.75rem; }
 
-/* For You / Latest feed tabs */
+/* For You / Latest feed tabs (flow inside .reels-bar) */
 .feed-tabs {
-  position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 8;
   display: flex; gap: 4px; background: rgba(20, 20, 20, 0.85);
   padding: 4px; border-radius: 999px;
 }
@@ -702,11 +701,16 @@ h3 { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.015em; }
 .author-link:hover { text-decoration: underline; }
 .author-link.dark { color: var(--ink); }
 
-/* Reels top bar: search + auto-scroll toggle */
+/* Reels control bar: feed tabs + search + sound + auto-scroll, ALL on one line */
+.reels-bar {
+  position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 9;
+  display: flex; align-items: center; gap: 8px;
+}
+.reels-bar > *, .reels-topbar > * { flex: 0 0 auto; } /* stay one line, don't squish */
 .reels-topbar {
-  position: fixed; top: 70px; right: 16px; z-index: 8;
   display: flex; gap: 8px; align-items: center; opacity: 0.95;
 }
+.autoscroll-btn.on { background: var(--green); color: #fff; }
 .reels-search {
   display: flex; gap: 6px; align-items: center;
   background: rgba(20, 20, 20, 0.88); padding: 5px; border-radius: 999px;
@@ -784,18 +788,20 @@ h3 { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.015em; }
 
   /* On phones, drop the reels controls onto their own centered row BELOW the
      feed tabs, so they no longer sit under the tabs and become untappable. */
-  .reels-topbar {
-    top: 58px; right: auto; left: 50%; transform: translateX(-50%);
-    justify-content: center; flex-wrap: wrap; max-width: 94vw;
-    gap: 6px; z-index: 9;
+  /* Keep all six controls on ONE line, just below the back button; scroll
+     sideways only if the screen is too narrow to fit them. */
+  .reels-bar {
+    top: 60px; max-width: 96vw; gap: 6px;
+    flex-wrap: nowrap; overflow-x: auto;
   }
-  .reels-topbar .btn.small { padding: 7px 11px; font-size: 0.8rem; }
-  .reels-search input { width: min(200px, 56vw); }
+  .reels-bar::-webkit-scrollbar { display: none; }
+  .reels-topbar { gap: 6px; }
+  .reels-topbar .btn.small { padding: 7px 10px; font-size: 0.8rem; }
+  .reels-search input { width: min(170px, 48vw); }
 
   /* Reels on phones: hide the top nav completely for a full-screen video, and show
      the small floating back button so the user can still leave the reels. */
   .nav-reels { display: none; }
   .reels-feed { height: 100vh; height: 100dvh; }
-  .feed-tabs { top: 16px; }
   .reels-back { display: flex; }
 }
