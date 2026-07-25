@@ -1,6 +1,6 @@
 // Main app shell: top navigation + routes for every page.
-import { useState } from 'react';
-import { Routes, Route, NavLink, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Routes, Route, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { getUser, clearSession } from './api/client';
 import Avatar from './components/Avatar';
 import ContributeModal from './components/ContributeModal';
@@ -22,7 +22,28 @@ import PriceCheckPage from './pages/PriceCheckPage';
 export default function App() {
   const user = getUser();
   const navigate = useNavigate();
+  const location = useLocation();
   const [supportOpen, setSupportOpen] = useState(false);
+
+  // On the Reels page (phones), the top nav auto-hides as you swipe into a video
+  // and reappears when you swipe back up — so it never covers the video or controls.
+  const onReels = location.pathname.startsWith('/reels');
+  const [navHidden, setNavHidden] = useState(false);
+  useEffect(() => {
+    if (!onReels) { setNavHidden(false); return; }
+    let lastY = 0;
+    const onScroll = (e) => {
+      const el = e.target;
+      if (!(el instanceof HTMLElement) || !el.classList.contains('reels-feed')) return;
+      const y = el.scrollTop;
+      if (y < 40) setNavHidden(false);            // near the top: always show
+      else if (y > lastY + 6) setNavHidden(true);  // swiping down: hide
+      else if (y < lastY - 6) setNavHidden(false); // swiping up: show
+      lastY = y;
+    };
+    document.addEventListener('scroll', onScroll, true); // capture scroll from the feed
+    return () => document.removeEventListener('scroll', onScroll, true);
+  }, [onReels]);
 
   function logout() {
     clearSession();
@@ -32,7 +53,7 @@ export default function App() {
 
   return (
     <div>
-      <header className="nav">
+      <header className={`nav${onReels ? ' nav-reels' : ''}${navHidden ? ' nav-hidden' : ''}`}>
         <NavLink to="/" className="brand">Magari<span>Hub</span></NavLink>
         <nav>
           <NavLink to="/">Listings</NavLink>

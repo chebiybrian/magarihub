@@ -772,10 +772,31 @@ h3 { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.015em; }
   /* On phones, drop the reels controls onto their own centered row BELOW the
      feed tabs, so they no longer sit under the tabs and become untappable. */
   .reels-topbar {
-    top: 116px; right: auto; left: 50%; transform: translateX(-50%);
+    top: 104px; right: auto; left: 50%; transform: translateX(-50%);
     justify-content: center; flex-wrap: wrap; max-width: 94vw;
     gap: 6px; z-index: 9;
   }
   .reels-topbar .btn.small { padding: 7px 11px; font-size: 0.8rem; }
   .reels-search input { width: min(200px, 56vw); }
+
+  /* Reels: a slim, translucent top nav that AUTO-HIDES as you swipe into a video,
+     so it never covers the video or the reel controls. It reappears when you swipe
+     back up to the top. Only on phones; desktop keeps the normal nav. */
+  .nav-reels {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 12;
+    flex-wrap: nowrap; overflow-x: auto; gap: 12px;
+    padding: 8px 12px; border-bottom: none;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    transition: transform 0.35s var(--spring), opacity 0.35s var(--spring);
+  }
+  .nav-reels nav { flex-wrap: nowrap; }
+  .nav-reels::-webkit-scrollbar { display: none; }
+  .nav-reels .brand, .nav-reels .brand span,
+  .nav-reels nav a, .nav-reels .nav-user { color: #fff; white-space: nowrap; }
+  .nav-reels.nav-hidden { transform: translateY(-110%); opacity: 0; pointer-events: none; }
+
+  /* With the nav overlaying (not taking space), the feed fills the whole screen. */
+  .reels-feed { height: 100vh; height: 100dvh; }
+  .feed-tabs { top: 58px; }
 }
