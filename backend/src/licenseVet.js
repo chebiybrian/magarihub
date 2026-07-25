@@ -74,7 +74,7 @@ async function extractWithAI(fileUrl) {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      model: process.env.VET_MODEL || 'claude-3-5-sonnet-20241022',
+      model: process.env.VET_MODEL || 'claude-haiku-4-5',
       max_tokens: 400,
       messages: [{ role: 'user', content }],
     }),
