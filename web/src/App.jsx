@@ -1,5 +1,5 @@
 // Main app shell: top navigation + routes for every page.
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Routes, Route, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { getUser, clearSession } from './api/client';
 import Avatar from './components/Avatar';
@@ -25,25 +25,9 @@ export default function App() {
   const location = useLocation();
   const [supportOpen, setSupportOpen] = useState(false);
 
-  // On the Reels page (phones), the top nav auto-hides as you swipe into a video
-  // and reappears when you swipe back up — so it never covers the video or controls.
+  // On phones the Reels page hides the top nav entirely for a full-screen video;
+  // a small floating back button (below) lets you leave the reels.
   const onReels = location.pathname.startsWith('/reels');
-  const [navHidden, setNavHidden] = useState(false);
-  useEffect(() => {
-    if (!onReels) { setNavHidden(false); return; }
-    let lastY = 0;
-    const onScroll = (e) => {
-      const el = e.target;
-      if (!(el instanceof HTMLElement) || !el.classList.contains('reels-feed')) return;
-      const y = el.scrollTop;
-      if (y < 40) setNavHidden(false);            // near the top: always show
-      else if (y > lastY + 6) setNavHidden(true);  // swiping down: hide
-      else if (y < lastY - 6) setNavHidden(false); // swiping up: show
-      lastY = y;
-    };
-    document.addEventListener('scroll', onScroll, true); // capture scroll from the feed
-    return () => document.removeEventListener('scroll', onScroll, true);
-  }, [onReels]);
 
   function logout() {
     clearSession();
@@ -53,7 +37,7 @@ export default function App() {
 
   return (
     <div>
-      <header className={`nav${onReels ? ' nav-reels' : ''}${navHidden ? ' nav-hidden' : ''}`}>
+      <header className={`nav${onReels ? ' nav-reels' : ''}`}>
         <NavLink to="/" className="brand">Magari<span>Hub</span></NavLink>
         <nav>
           <NavLink to="/">Listings</NavLink>
@@ -80,6 +64,19 @@ export default function App() {
           )}
         </div>
       </header>
+
+      {onReels && (
+        <button
+          className="reels-back"
+          aria-label="Back"
+          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+      )}
 
       <main>
         <Routes>

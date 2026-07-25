@@ -765,6 +765,19 @@ h3 { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.015em; }
 .article h2 { margin: 18px 0 8px; }
 .article-body p, .article-body li { margin: 8px 0; line-height: 1.6; }
 
+/* Floating "back" button — shown only on the Reels page on phones (see media query) */
+.reels-back {
+  display: none;
+  position: fixed; top: 14px; left: 12px; z-index: 15;
+  width: 40px; height: 40px; border-radius: 50%;
+  align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, 0.45); color: #fff; border: none;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s var(--spring);
+}
+.reels-back:active { transform: scale(0.92); }
+
 @media (max-width: 640px) {
   .nav { gap: 10px; padding: 10px 12px; }
   .photo-row img { height: 160px; }
@@ -772,31 +785,17 @@ h3 { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.015em; }
   /* On phones, drop the reels controls onto their own centered row BELOW the
      feed tabs, so they no longer sit under the tabs and become untappable. */
   .reels-topbar {
-    top: 104px; right: auto; left: 50%; transform: translateX(-50%);
+    top: 58px; right: auto; left: 50%; transform: translateX(-50%);
     justify-content: center; flex-wrap: wrap; max-width: 94vw;
     gap: 6px; z-index: 9;
   }
   .reels-topbar .btn.small { padding: 7px 11px; font-size: 0.8rem; }
   .reels-search input { width: min(200px, 56vw); }
 
-  /* Reels: a slim, translucent top nav that AUTO-HIDES as you swipe into a video,
-     so it never covers the video or the reel controls. It reappears when you swipe
-     back up to the top. Only on phones; desktop keeps the normal nav. */
-  .nav-reels {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 12;
-    flex-wrap: nowrap; overflow-x: auto; gap: 12px;
-    padding: 8px 12px; border-bottom: none;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
-    -webkit-backdrop-filter: none; backdrop-filter: none;
-    transition: transform 0.35s var(--spring), opacity 0.35s var(--spring);
-  }
-  .nav-reels nav { flex-wrap: nowrap; }
-  .nav-reels::-webkit-scrollbar { display: none; }
-  .nav-reels .brand, .nav-reels .brand span,
-  .nav-reels nav a, .nav-reels .nav-user { color: #fff; white-space: nowrap; }
-  .nav-reels.nav-hidden { transform: translateY(-110%); opacity: 0; pointer-events: none; }
-
-  /* With the nav overlaying (not taking space), the feed fills the whole screen. */
+  /* Reels on phones: hide the top nav completely for a full-screen video, and show
+     the small floating back button so the user can still leave the reels. */
+  .nav-reels { display: none; }
   .reels-feed { height: 100vh; height: 100dvh; }
-  .feed-tabs { top: 58px; }
+  .feed-tabs { top: 16px; }
+  .reels-back { display: flex; }
 }
